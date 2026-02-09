@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-text font-sans antialiased;
+  }
+}
+
+/* Hide Next.js Dev Indicator */
+nextjs-portal,
+#next-route-announcer {
+  display: none !important;
+}
