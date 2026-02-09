@@ -2,3 +2,15 @@
 artifacts/
 cache/
 .env
+.next/
+out/
+build/
+coverage/
+typechain-types/
+.docusaurus/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode/
