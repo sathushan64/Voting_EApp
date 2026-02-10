@@ -10,6 +10,7 @@ import Loader from '../components/Loader'; // Will create this next
 const index = () => {
     const {
         getNewCandidate,
+        getAllVoterData,
         candidateArray,
         giveVote,
         checkIfWalletIsConnected,
@@ -19,8 +20,9 @@ const index = () => {
     } = useContext(VotingContext);
 
     useEffect(() => {
-        checkIfWalletIsConnected();
+        getAllVoterData();
         getNewCandidate();
+        checkIfWalletIsConnected();
     }, []);
 
     return (

@@ -1,5 +1,5 @@
 {
-  "name": "voting_dapp",
+  "name": "voting-eapp",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

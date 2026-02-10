@@ -167,6 +167,7 @@ export const VotingProvider = ({ children }) => {
             // VOTER LIST
             const voterListData = await contract.getVoterList();
             setVoterAddress(voterListData);
+            setVoterLength(voterListData.length);
 
             const items = await Promise.all(
                 voterListData.map(async (el) => {
@@ -185,7 +186,7 @@ export const VotingProvider = ({ children }) => {
             );
             setVoterArray(items);
         } catch (error) {
-            // console.log(error); // Quiet fail if not connected
+            console.log(error); // Quiet fail if not connected
         }
     };
 
