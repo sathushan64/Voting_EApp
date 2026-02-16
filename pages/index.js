@@ -30,7 +30,7 @@ const index = () => {
 
             {/* HEADER SECTION */}
             <div className="flex flex-col items-center justify-center mb-16 pt-10 text-center">
-                <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient-x">
+                <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient-x pb-2">
                     Electronic Voting
                 </h1>
                 <p className="text-muted text-lg max-w-2xl mx-auto leading-relaxed">
@@ -51,30 +51,29 @@ const index = () => {
             {candidateArray.length > 0 && candidateArray.some(el => Number(el.voteCount) > 0) && (
                 <div className="max-w-7xl mx-auto mb-16">
                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
+                        <h2 className="text-3xl font-bold text-white">
                             Current Leading Candidate
                         </h2>
                         <div className="h-1 flex-1 bg-gray-800 ml-6 rounded-full"></div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
+                    <div className="flex justify-center">
                         {candidateArray
                             .filter(c => Number(c.voteCount) === Math.max(...candidateArray.map(o => Number(o.voteCount))))
                             .map((el, i) => (
-                                <div key={i} className="relative transform hover:scale-105 transition-all duration-300">
-                                    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-600 rounded-2xl blur opacity-75 animate-pulse"></div>
-                                    <div className="relative bg-black rounded-2xl p-6 border border-yellow-500/50">
+                                <div key={i} className="relative transform hover:scale-105 transition-all duration-300 max-w-sm w-full mx-auto">
+                                    <div className="relative bg-gradient-to-br from-indigo-900 to-purple-900 rounded-2xl p-6 border border-white/10 shadow-xl">
                                         <div className="absolute top-0 right-0 p-4">
-                                            <span className="bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-sm shadow-lg">
+                                            <span className="bg-white text-black font-bold px-3 py-1 rounded-full text-sm shadow-lg">
                                                 🏆 LEADER
                                             </span>
                                         </div>
 
-                                        <div className="w-full h-64 rounded-xl overflow-hidden mb-6 border-2 border-yellow-500/20">
+                                        <div className="w-full h-64 rounded-xl overflow-hidden mb-6 border border-white/10">
                                             <img
                                                 src={el.image}
                                                 alt={el.name}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover grayscale0"
                                             />
                                         </div>
 
@@ -83,7 +82,7 @@ const index = () => {
 
                                         <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl border border-gray-800">
                                             <span className="text-gray-400">Total Votes</span>
-                                            <span className="text-3xl font-bold text-yellow-500">{el.voteCount}</span>
+                                            <span className="text-3xl font-bold text-white">{el.voteCount}</span>
                                         </div>
                                     </div>
                                 </div>

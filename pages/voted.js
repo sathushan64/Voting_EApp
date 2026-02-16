@@ -11,10 +11,8 @@ const Voted = () => {
             <p className="text-gray-400 text-xl max-w-2xl mb-12">
                 Your vote has been recorded on the Ethereum blockchain. Thank you for participating in this decentralized election.
             </p>
-            <Link href="/">
-                <a className="px-8 py-4 rounded-full bg-primary text-white font-bold text-lg hover:shadow-2xl transition-all">
-                    Back to Home
-                </a>
+            <Link href="/" className="px-8 py-4 rounded-full bg-primary text-white font-bold text-lg hover:shadow-2xl transition-all">
+                Back to Home
             </Link>
         </div>
     )

@@ -28,6 +28,7 @@ const VoterList = () => {
               id={el.id}
               address={el.address}
               voteCount={undefined} // Voters don't display vote counts on themselves
+              votedStatus={el.voted}
               hideVoteButton={true}
             />
           ))}

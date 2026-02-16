@@ -2,9 +2,9 @@
 import React from "react";
 import Image from "next/image";
 
-const Card = ({ image, name, id, address, voteCount, giveVote, hideVoteButton }) => {
+const Card = ({ image, name, id, address, voteCount, giveVote, hideVoteButton, votedStatus }) => {
     return (
-        <div className="bg-paper p-6 rounded-2xl border border-gray-800 hover:border-primary transition-all duration-300 group hover:shadow-2xl hover:shadow-primary/20 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-indigo-900 to-purple-900 p-6 rounded-2xl border border-gray-700 hover:border-pink-500 transition-all duration-300 group hover:shadow-2xl hover:shadow-pink-500/20 relative overflow-hidden max-w-sm w-full mx-auto">
             <div className="relative w-full h-48 rounded-xl overflow-hidden mb-4 bg-gray-900">
                 {image ? (
                     <Image
@@ -29,8 +29,12 @@ const Card = ({ image, name, id, address, voteCount, giveVote, hideVoteButton })
 
             <div className="flex items-center justify-between mt-auto">
                 <div className="flex flex-col">
-                    <span className="text-xs text-gray-500 uppercase">Total Votes</span>
-                    <span className="text-2xl font-bold text-accent">{voteCount !== undefined ? voteCount : '-'}</span>
+                    <span className="text-xs text-gray-500 uppercase">
+                        {voteCount !== undefined ? "Total Votes" : "Status"}
+                    </span>
+                    <span className="text-xl font-bold text-accent">
+                        {voteCount !== undefined ? voteCount : (votedStatus ? "Voted" : "Not Voted")}
+                    </span>
                 </div>
 
                 {!hideVoteButton && (
