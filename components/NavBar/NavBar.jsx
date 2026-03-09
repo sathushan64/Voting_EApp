@@ -42,6 +42,9 @@ const NavBar = () => {
                     <Link href={{ pathname: '/voterList' }}>
                         <p className={router.pathname === '/voterList' ? activeLink : normalLink}>Voter List</p>
                     </Link>
+                    <Link href={{ pathname: '/admin' }}>
+                        <p className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>
+                    </Link>
                 </div>
 
                 {/* CONNECT BUTTON */}
@@ -89,6 +92,9 @@ const NavBar = () => {
                     </Link>
                     <Link href={{ pathname: '/voterList' }}>
                         <p onClick={() => setOpenNav(false)} className={router.pathname === '/voterList' ? activeLink : normalLink}>Voter List</p>
+                    </Link>
+                    <Link href={{ pathname: '/admin' }}>
+                        <p onClick={() => setOpenNav(false)} className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>
                     </Link>
 
                     <div className="mt-4">

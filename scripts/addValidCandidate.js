@@ -1,10 +1,7 @@
-const hre = require("hardhat");
-const { VotingAddress } = require("../context/constants"); // Ensure this imports correctly or hardcode if needed for script simplicity in this env
-
-// For script stability in this specific environment, I will hardcode the new address 
-// to match what I just wrote to constants.js, as node imports might behave differently with ES6 modules
+import hre from "hardhat";
+import fs from 'fs';
 const VOTING_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
-
+const votingDTO = JSON.parse(fs.readFileSync(new URL("../artifacts/contracts/Voting.sol/Voting.json", import.meta.url)));
 async function main() {
     const [deployer] = await hre.ethers.getSigners();
     const Voting = await hre.ethers.getContractFactory("Voting");

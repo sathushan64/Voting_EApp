@@ -4,7 +4,7 @@ import Image from "next/image";
 
 const Card = ({ image, name, id, address, voteCount, giveVote, hideVoteButton, votedStatus }) => {
     return (
-        <div className="bg-gradient-to-br from-indigo-900 to-purple-900 p-6 rounded-2xl border border-gray-700 hover:border-pink-500 transition-all duration-300 group hover:shadow-2xl hover:shadow-pink-500/20 relative overflow-hidden max-w-sm w-full mx-auto">
+        <div className="bg-paper p-6 rounded-3xl border border-gray-800 hover:border-primary/50 transition-all duration-300 group hover:shadow-2xl hover:shadow-primary/10 relative overflow-hidden max-w-sm w-full mx-auto">
             <div className="relative w-full h-48 rounded-xl overflow-hidden mb-4 bg-gray-900">
                 {image ? (
                     <Image

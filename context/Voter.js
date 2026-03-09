@@ -21,6 +21,7 @@ export const VotingProvider = ({ children }) => {
     const [pushCandidate, setPushCandidate] = useState([]);
     const [candidateIndex, setCandidateIndex] = useState(null);
     const [candidateArray, setCandidateArray] = useState([]);
+    const [votingOrganizer, setVotingOrganizer] = useState('');
 
     const [error, setError] = useState('');
     const [voterArray, setVoterArray] = useState([]);
@@ -34,8 +35,43 @@ export const VotingProvider = ({ children }) => {
 
         if (account.length) {
             setCurrentAccount(account[0]);
+            await getVotingOrganizer();
         } else {
             setError('Please Install MetaMask & Connect, Reload');
+        }
+    };
+
+    const getVotingOrganizer = async () => {
+        try {
+            const web3Modal = new Web3Modal();
+            const connection = await web3Modal.connect();
+            const provider = new ethers.providers.Web3Provider(connection);
+            const contract = fetchContract(provider);
+            const organizer = await contract.votingOrganizer();
+            setVotingOrganizer(organizer.toLowerCase());
+        } catch (error) {
+            console.log("Error fetching organizer", error);
+        }
+    };
+
+    const transferAdminRights = async (newAddress) => {
+        if (!newAddress) return setError("Please provide a new address");
+        try {
+            const web3Modal = new Web3Modal();
+            const connection = await web3Modal.connect();
+            const provider = new ethers.providers.Web3Provider(connection);
+            const signer = provider.getSigner();
+            const contract = fetchContract(signer);
+
+            const tx = await contract.changeOrganizer(newAddress);
+            await tx.wait();
+            
+            // Re-fetch organizer state to instantly lock out the old admin
+            await getVotingOrganizer();
+            router.push('/'); 
+        } catch (error) {
+            console.log("Error transferring admin rights:", error);
+            setError(`Error transferring rights: ${error.message}`);
         }
     };
 
@@ -52,6 +88,7 @@ export const VotingProvider = ({ children }) => {
             });
 
             setCurrentAccount(account[0]);
+            await getVotingOrganizer();
             setError('');
         } catch (err) {
             console.log("Error connecting wallet:", err);
@@ -303,6 +340,8 @@ export const VotingProvider = ({ children }) => {
                 voterLength,
                 voterAddress,
                 uploadToIPFSCandidate,
+                votingOrganizer,
+                transferAdminRights,
             }}
         >
             {children}

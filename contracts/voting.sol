@@ -59,6 +59,12 @@ contract Voting {
         votingOrganizer = msg.sender;
     }
 
+    function changeOrganizer(address newOrganizer) public {
+        require(msg.sender == votingOrganizer, "Only current organizer can transfer rights");
+        require(newOrganizer != address(0), "Cannot transfer to zero address");
+        votingOrganizer = newOrganizer;
+    }
+
     function setCandidate(
         address _address,
         string memory _age,
@@ -66,7 +72,7 @@ contract Voting {
         string memory _image,
         string memory _ipfs
     ) public {
-        // require(votingOrganizer == msg.sender, "Only organizer can register candidates");
+        require(votingOrganizer == msg.sender, "Only organizer can register candidates");
         require(candidates[_address].id == 0, "Candidate already exists");
 
         uint _id = candidateAddress.length;
@@ -133,7 +139,7 @@ contract Voting {
         string memory _image,
         string memory _ipfs
     ) public {
-        // require(votingOrganizer == msg.sender, "Only organizer can register voters");
+        require(votingOrganizer == msg.sender, "Only organizer can register voters");
         require(voters[_address]._address == address(0), "Voter already registered");
 
         uint _id = votersAddress.length;
