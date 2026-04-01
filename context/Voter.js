@@ -22,11 +22,26 @@ export const VotingProvider = ({ children }) => {
     const [candidateIndex, setCandidateIndex] = useState(null);
     const [candidateArray, setCandidateArray] = useState([]);
     const [votingOrganizer, setVotingOrganizer] = useState('');
+    const [isOnboarded, setIsOnboarded] = useState(null);
 
     const [error, setError] = useState('');
     const [voterArray, setVoterArray] = useState([]);
     const [voterLength, setVoterLength] = useState('');
     const [voterAddress, setVoterAddress] = useState([]);
+
+    const checkOnboardStatus = async (account) => {
+        try {
+            const res = await axios.get(`/api/user?address=${account}`);
+            if (res.data.onboarded) {
+                setIsOnboarded(true);
+            } else {
+                setIsOnboarded(false);
+            }
+        } catch (error) {
+            console.log("Error checking onboard status", error);
+            setIsOnboarded(false);
+        }
+    };
 
     // CONNECTING METAMASK
     const checkIfWalletIsConnected = async () => {
@@ -35,6 +50,7 @@ export const VotingProvider = ({ children }) => {
 
         if (account.length) {
             setCurrentAccount(account[0]);
+            await checkOnboardStatus(account[0]);
             await getVotingOrganizer();
         } else {
             setError('Please Install MetaMask & Connect, Reload');
@@ -46,11 +62,32 @@ export const VotingProvider = ({ children }) => {
             const web3Modal = new Web3Modal();
             const connection = await web3Modal.connect();
             const provider = new ethers.providers.Web3Provider(connection);
+            const { chainId } = await provider.getNetwork();
+            
+            // Force switch to localhost if the user is on the wrong network (e.g., Mainnet Chain ID 1)
+            if (chainId !== 31337) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x7A69' }], // 31337 in hex
+                    });
+                    // Refresh the page automatically after switching networks to remount provider correctly
+                    window.location.reload();
+                    return;
+                } catch (switchError) {
+                    console.error("Failed to switch network:", switchError);
+                    setError("Please manually switch your MetaMask network to Localhost (8545).");
+                    return;
+                }
+            }
+            
             const contract = fetchContract(provider);
             const organizer = await contract.votingOrganizer();
             setVotingOrganizer(organizer.toLowerCase());
         } catch (error) {
             console.log("Error fetching organizer", error);
+            const mmChainId = window.ethereum ? window.ethereum.networkVersion : 'none';
+            setError(`Error fetching Organizer: ${error.message} \n(MetaMask is on Chain ID: ${mmChainId}, but Contract expects 31337)`);
         }
     };
 
@@ -88,6 +125,7 @@ export const VotingProvider = ({ children }) => {
             });
 
             setCurrentAccount(account[0]);
+            await checkOnboardStatus(account[0]);
             await getVotingOrganizer();
             setError('');
         } catch (err) {
@@ -127,6 +165,28 @@ export const VotingProvider = ({ children }) => {
         } catch (error) {
             console.log('Error uploading content to IPFS', error);
             setError(`Error uploading IPFS: ${error.message}`);
+        }
+    };
+
+    // UPLOAD JSON DATA TO IPFS
+    const uploadJSONToIPFS = async (jsonData) => {
+        if (!jsonData) return;
+        try {
+            const res = await axios({
+                method: "post",
+                url: "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+                data: jsonData,
+                headers: {
+                    pinata_api_key: pinataApiKey,
+                    pinata_secret_api_key: pinataSecretApiKey,
+                    "Content-Type": "application/json",
+                },
+            });
+            const url = `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`;
+            return url;
+        } catch (error) {
+            console.log("Error Uploading JSON data to IPFS:", error);
+            setError(`Error pinning JSON: ${error.message}`);
         }
     };
 
@@ -342,6 +402,9 @@ export const VotingProvider = ({ children }) => {
                 uploadToIPFSCandidate,
                 votingOrganizer,
                 transferAdminRights,
+                isOnboarded,
+                checkOnboardStatus,
+                uploadJSONToIPFS
             }}
         >
             {children}

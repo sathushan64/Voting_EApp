@@ -1,29 +1,46 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 // INTERNAL IMPORT
 import { VotingContext } from '../context/Voter';
+import { VotingAddress } from '../context/constants';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
 const AdminDashboard = () => {
     const [newAdminAddress, setNewAdminAddress] = useState('');
-    const { currentAccount, votingOrganizer, transferAdminRights } = useContext(VotingContext);
+    const { currentAccount, votingOrganizer, transferAdminRights, checkIfWalletIsConnected, error } = useContext(VotingContext);
     const router = useRouter();
+
+    useEffect(() => {
+        checkIfWalletIsConnected();
+    }, []);
+
+    // Only authorized if we know BOTH the connected account AND the organizer, AND they match exactly.
+    const isAuthorized = currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase();
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-8">
             <div className="bg-paper p-10 rounded-3xl shadow-2xl border border-gray-800 w-full max-w-4xl flex flex-col items-center justify-center">
 
-                {currentAccount && votingOrganizer && currentAccount.toLowerCase() !== votingOrganizer.toLowerCase() ? (
+                {!isAuthorized ? (
                     <div className="w-full text-center py-20 flex flex-col items-center">
                         <div className="text-red-500 mb-6">
                             <svg className="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                         </div>
                         <h1 className="text-4xl font-bold mb-4 text-white">Access Denied</h1>
                         <p className="text-gray-400 text-lg max-w-lg mx-auto mb-8">
-                            This is the Admin Settings Dashboard. Only the designated Election Organizer is authorized to access this page.
+                            {!currentAccount 
+                                ? "Please connect your MetaMask wallet. This is the Admin Settings Dashboard."
+                                : "This is the Admin Settings Dashboard. Only the designated Election Organizer is authorized to access this page."}
                         </p>
+                        {error && (
+                            <p className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-2 rounded-lg text-sm max-w-md mx-auto mb-8 break-words text-left">
+                                <strong>System Error:</strong> {error}
+                                <br/><br/>
+                                <span className="text-gray-500 text-xs">Target Contract: {VotingAddress}</span>
+                            </p>
+                        )}
                         <Button btnName="Return Home" handleClick={() => router.push('/')} />
                     </div>
                 ) : (

@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import { VotingContext } from '../../context/Voter';
 
 const NavBar = () => {
-    const { connectWallet, error, currentAccount } = useContext(VotingContext);
+    const { connectWallet, error, currentAccount, votingOrganizer } = useContext(VotingContext);
     const router = useRouter();
 
     const [openNav, setOpenNav] = useState(false);
@@ -33,18 +33,27 @@ const NavBar = () => {
                     <Link href={{ pathname: '/' }}>
                         <p className={router.pathname === '/' ? activeLink : normalLink}>Home</p>
                     </Link>
-                    <Link href={{ pathname: '/candidate-registration' }}>
-                        <p className={router.pathname === '/candidate-registration' ? activeLink : normalLink}>Candidate</p>
-                    </Link>
-                    <Link href={{ pathname: '/allowed-voters' }}>
-                        <p className={router.pathname === '/allowed-voters' ? activeLink : normalLink}>Voter Reg</p>
-                    </Link>
                     <Link href={{ pathname: '/voterList' }}>
                         <p className={router.pathname === '/voterList' ? activeLink : normalLink}>Voter List</p>
                     </Link>
-                    <Link href={{ pathname: '/admin' }}>
-                        <p className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>
-                    </Link>
+
+                    {/* ADMIN VIP ROUTES */}
+                    {currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase() && (
+                        <>
+                            <Link href={{ pathname: '/candidate-registration' }}>
+                                <p className={router.pathname === '/candidate-registration' ? activeLink : normalLink}>Candidate Reg</p>
+                            </Link>
+                            <Link href={{ pathname: '/allowed-voters' }}>
+                                <p className={router.pathname === '/allowed-voters' ? activeLink : normalLink}>Voter Reg</p>
+                            </Link>
+                            <Link href={{ pathname: '/history' }}>
+                                <p className={router.pathname === '/history' ? activeLink : normalLink}>User History</p>
+                            </Link>
+                            <Link href={{ pathname: '/admin' }}>
+                                <p className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* CONNECT BUTTON */}
@@ -84,18 +93,27 @@ const NavBar = () => {
                     <Link href={{ pathname: '/' }}>
                         <p onClick={() => setOpenNav(false)} className={router.pathname === '/' ? activeLink : normalLink}>Home</p>
                     </Link>
-                    <Link href={{ pathname: '/candidate-registration' }}>
-                        <p onClick={() => setOpenNav(false)} className={router.pathname === '/candidate-registration' ? activeLink : normalLink}>Candidate Registration</p>
-                    </Link>
-                    <Link href={{ pathname: '/allowed-voters' }}>
-                        <p onClick={() => setOpenNav(false)} className={router.pathname === '/allowed-voters' ? activeLink : normalLink}>Voter Registration</p>
-                    </Link>
                     <Link href={{ pathname: '/voterList' }}>
                         <p onClick={() => setOpenNav(false)} className={router.pathname === '/voterList' ? activeLink : normalLink}>Voter List</p>
                     </Link>
-                    <Link href={{ pathname: '/admin' }}>
-                        <p onClick={() => setOpenNav(false)} className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>
-                    </Link>
+
+                    {/* ADMIN VIP ROUTES */}
+                    {currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase() && (
+                        <>
+                            <Link href={{ pathname: '/candidate-registration' }}>
+                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/candidate-registration' ? activeLink : normalLink}>Candidate Registration</p>
+                            </Link>
+                            <Link href={{ pathname: '/allowed-voters' }}>
+                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/allowed-voters' ? activeLink : normalLink}>Voter Registration</p>
+                            </Link>
+                            <Link href={{ pathname: '/history' }}>
+                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/history' ? activeLink : normalLink}>User History</p>
+                            </Link>
+                            <Link href={{ pathname: '/admin' }}>
+                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>
+                            </Link>
+                        </>
+                    )}
 
                     <div className="mt-4">
                         {currentAccount ? (
