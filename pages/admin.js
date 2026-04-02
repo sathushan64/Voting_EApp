@@ -16,7 +16,7 @@ const AdminDashboard = () => {
         checkIfWalletIsConnected();
     }, []);
 
-    // Only authorized if we know BOTH the connected account AND the organizer, AND they match exactly.
+    // Determine if authorized (must be the verified contract organizer)
     const isAuthorized = currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase();
 
     return (
@@ -30,9 +30,7 @@ const AdminDashboard = () => {
                         </div>
                         <h1 className="text-4xl font-bold mb-4 text-white">Access Denied</h1>
                         <p className="text-gray-400 text-lg max-w-lg mx-auto mb-8">
-                            {!currentAccount 
-                                ? "Please connect your MetaMask wallet. This is the Admin Settings Dashboard."
-                                : "This is the Admin Settings Dashboard. Only the designated Election Organizer is authorized to access this page."}
+                            Please connect your MetaMask wallet. This is the Admin Settings Dashboard.
                         </p>
                         {error && (
                             <p className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-2 rounded-lg text-sm max-w-md mx-auto mb-8 break-words text-left">
@@ -57,8 +55,22 @@ const AdminDashboard = () => {
                         <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800 mb-8 text-left">
                             <h3 className="text-lg font-semibold text-white mb-2">Current Admin</h3>
                             <p className="text-primary break-all font-mono text-sm bg-black/40 p-3 rounded-lg border border-primary/20">
-                                {votingOrganizer || "Loading..."}
+                                {currentAccount || "Loading..."}
                             </p>
+                        </div>
+
+                        <div className="bg-primary/10 border border-primary/20 p-6 rounded-2xl mb-8 flex flex-col md:flex-row items-center justify-between text-left gap-4">
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-1">Election Management</h3>
+                                <p className="text-gray-400 text-sm max-w-sm">
+                                    Create a new election, set the rules, and generate a QR code to quickly onboard voters.
+                                </p>
+                            </div>
+                            <Button
+                                btnName="Create Election"
+                                handleClick={() => router.push('/create-election')}
+                                classStyles="w-full md:w-auto px-6 whitespace-nowrap"
+                            />
                         </div>
 
                         <div className="text-left mb-8">

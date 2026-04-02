@@ -63,6 +63,23 @@ export default function handler(req, res) {
         return res.status(200).json({ success: true, message: "User registered successfully", user: completeUser });
     } 
     
+    else if (req.method === 'DELETE') {
+        const { address } = req.query;
+        if (!address) {
+            return res.status(400).json({ error: "Missing address" });
+        }
+
+        const initialLength = users.length;
+        users = users.filter(u => u.address.toLowerCase() !== address.toLowerCase());
+
+        if (users.length === initialLength) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        fs.writeFileSync(dataFilePath, JSON.stringify(users, null, 2));
+        return res.status(200).json({ success: true, message: "User deleted" });
+    } 
+    
     else {
         return res.status(405).json({ error: "Method not allowed" });
     }

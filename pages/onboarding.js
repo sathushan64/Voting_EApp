@@ -9,14 +9,20 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 
 const Onboarding = () => {
-    const { currentAccount, uploadToIPFS, uploadJSONToIPFS, checkOnboardStatus } = useContext(VotingContext);
+    const { currentAccount, votingOrganizer, uploadToIPFS, uploadJSONToIPFS, checkOnboardStatus } = useContext(VotingContext);
     const router = useRouter();
 
+    const [activeTab, setActiveTab] = useState("Voter");
+
+    const [electionPin, setElectionPin] = useState("");
+    const [electionName, setElectionName] = useState("");
+    const [pinLoading, setPinLoading] = useState(false);
+    
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-    // Form State
+    // Form State (Voter/Candidate)
     const [formData, setFormData] = useState({
         name: "",
         nic: "",
@@ -24,8 +30,15 @@ const Onboarding = () => {
         gender: "Male",
         phone: "",
         email: "",
-        address: "",
-        role: "Voter"
+        address: ""
+    });
+
+    // Admin Form State
+    const [adminData, setAdminData] = useState({
+        name: "",
+        age: "",
+        position: "",
+        email: ""
     });
 
     // OTP State
@@ -61,6 +74,41 @@ const Onboarding = () => {
     const dropNicFront = createDropzone("nicFront");
     const dropNicBack = createDropzone("nicBack");
     const dropSelfie = createDropzone("selfie");
+
+    // Initialize PIN from query if passed from homepage
+    useEffect(() => {
+        if (router.query.pin) {
+            setElectionPin(router.query.pin);
+        }
+    }, [router.query.pin]);
+
+    // Auto-verify PIN when it reaches 6 digits
+    useEffect(() => {
+        if (electionPin && electionPin.length === 6) {
+            const verifyPin = async () => {
+                setPinLoading(true);
+                try {
+                    const res = await fetch('/api/verifyCode', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: electionPin })
+                    });
+                    const data = await res.json();
+                    if (data.valid) {
+                        setElectionName(data.electionTitle);
+                    } else {
+                        setElectionName("Invalid PIN");
+                    }
+                } catch (err) {
+                    setElectionName("Error");
+                }
+                setPinLoading(false);
+            };
+            verifyPin();
+        } else {
+            setElectionName("");
+        }
+    }, [electionPin]);
 
     const sendOtp = async (type, target) => {
         if (!target) return setErrorMsg(`Please input a valid ${type} first.`);
@@ -101,6 +149,9 @@ const Onboarding = () => {
     const handleNext = () => {
         setErrorMsg("");
         if (step === 1) {
+            if (!electionName || electionName === "Invalid PIN" || electionName === "Error") {
+                return setErrorMsg("Please enter a valid 6-Digit Election PIN before proceeding.");
+            }
             if (!formData.name || !formData.nic || !formData.dob || !formData.phone || !formData.email || !formData.address) {
                 return setErrorMsg("Please fill in all personal information fields.");
             }
@@ -134,7 +185,7 @@ const Onboarding = () => {
             // 2. Build Master JSON Payload
             const masterPayload = {
                 walletAddress: currentAccount,
-                role: formData.role,
+                role: activeTab,
                 personalDetails: {
                     name: formData.name,
                     nic: formData.nic,
@@ -161,7 +212,8 @@ const Onboarding = () => {
             // 4. Save to Mock DB API mapping Address -> IPFS Master Link
             const apiPayload = {
                 address: currentAccount,
-                role: formData.role,
+                role: activeTab,
+                electionPin: electionPin || "N/A",
                 cid: masterIpfsUrl
             };
 
@@ -181,6 +233,65 @@ const Onboarding = () => {
             router.push('/');
         } catch (error) {
             console.error("Submission Error:", error);
+            setErrorMsg(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAdminSubmit = async () => {
+        setLoading(true);
+        setErrorMsg("");
+
+        if (!adminData.name || !adminData.age || !adminData.position || !adminData.email) {
+            setErrorMsg("Please fill in all admin details fields.");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            // 1. Build Master Admin Payload
+            const masterPayload = {
+                walletAddress: currentAccount,
+                role: "Admin",
+                personalDetails: {
+                    name: adminData.name,
+                    age: adminData.age,
+                    position: adminData.position,
+                    email: adminData.email,
+                },
+                timestamp: Date.now()
+            };
+
+            // 2. Pin Master Payload to IPFS (no images)
+            const masterIpfsUrl = await uploadJSONToIPFS(masterPayload);
+            if (!masterIpfsUrl) {
+                throw new Error("Failed to secure profile data to IPFS.");
+            }
+
+            // 3. Save to API mapping
+            const apiPayload = {
+                address: currentAccount,
+                role: "Admin",
+                cid: masterIpfsUrl
+            };
+
+            const response = await fetch('/api/user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(apiPayload)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to save admin details.");
+            }
+
+            // 4. Update the global context status and Redirect to create election
+            await checkOnboardStatus(currentAccount);
+            router.push('/create-election');
+        } catch (error) {
+            console.error("Admin Submission Error:", error);
             setErrorMsg(error.message);
         } finally {
             setLoading(false);
@@ -223,12 +334,40 @@ const Onboarding = () => {
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8 pt-24">
             <div className="bg-paper p-8 md:p-10 rounded-3xl shadow-2xl border border-gray-800 w-full max-w-3xl relative overflow-hidden">
                 
-                {/* Header & Progress */}
-                <div className="mb-8 border-b border-gray-800 pb-6 text-center">
-                    <h1 className="text-3xl font-bold text-white mb-2">Complete Your Profile</h1>
-                    <p className="text-gray-400">Mandatory verification to participate in the decentralized election.</p>
-                    
-                    <div className="flex items-center justify-center gap-2 mt-6">
+                {/* MetaMask Mobile Warning */}
+                {(!currentAccount && typeof window !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent)) && (
+                    <div className="bg-yellow-900/40 border border-yellow-500/50 text-yellow-200 p-4 rounded-xl mb-6 text-sm flex gap-3">
+                        <svg className="w-6 h-6 shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <div>
+                            <strong className="block mb-1">Mobile Users Alert</strong>
+                            Please manually open this link inside the <strong>MetaMask Application Browser</strong>. Web3 connections will not work in standard Safari or Chrome.
+                        </div>
+                    </div>
+                )}
+
+                {/* (Election Banner Removed as it is now in the form below) */}
+
+                {/* Role Tabs */}
+                <div className="flex w-full mt-2 mb-8 bg-black/40 rounded-xl p-1 border border-gray-800 relative z-10">
+                    {["Voter", "Candidate", "Admin"].map(tab => (
+                        <button 
+                            key={tab}
+                            onClick={() => { setActiveTab(tab); setErrorMsg(""); setStep(1); }}
+                            className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all ${activeTab === tab ? 'bg-primary text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+
+                {activeTab !== "Admin" ? (
+                    <>
+                        {/* Header & Progress */}
+                        <div className="mb-8 border-b border-gray-800 pb-6 text-center">
+                            <h1 className="text-3xl font-bold text-white mb-2">Complete Your Profile</h1>
+                            <p className="text-gray-400">Mandatory verification to participate as a {activeTab}.</p>
+                            
+                            <div className="flex items-center justify-center gap-2 mt-6">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="flex flex-col items-center w-24">
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${step >= s ? 'bg-primary text-white' : 'bg-gray-800 text-gray-500'}`}>
@@ -251,6 +390,31 @@ const Onboarding = () => {
                 {/* STEP 1: Personal Info */}
                 {step === 1 && (
                     <div className="animate-fade-in space-y-4">
+                        {/* Election Context */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-800">
+                            <div className="w-full">
+                                <p className="text-sm font-semibold text-gray-300 mb-2">Election PIN (6-Digit)</p>
+                                <input 
+                                    type="text" 
+                                    maxLength={6} 
+                                    className="w-full bg-background border border-gray-700 text-white p-3 rounded-xl focus:outline-none focus:border-primary tracking-widest text-lg font-mono text-center" 
+                                    placeholder="123456" 
+                                    value={electionPin} 
+                                    onChange={(e) => setElectionPin(e.target.value.replace(/\D/g, ''))} 
+                                />
+                            </div>
+                            <div className="w-full">
+                                <p className="text-sm font-semibold text-gray-300 mb-2">Election Name</p>
+                                <input 
+                                    type="text" 
+                                    disabled
+                                    className={`w-full bg-background border border-gray-700 p-3 rounded-xl focus:outline-none placeholder-gray-600 text-center ${electionName === "Invalid PIN" ? "text-red-500" : "text-green-400 font-bold"}`}
+                                    placeholder={pinLoading ? "Verifying..." : "Auto-fills after PIN"} 
+                                    value={electionName} 
+                                />
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Input title="Full Name" placeholder="John Doe" inputType="text" value={formData.name} handleClick={(e) => setFormData({...formData, name: e.target.value})} />
                             <Input title="National ID (NIC)" placeholder="123456789V" inputType="text" value={formData.nic} handleClick={(e) => setFormData({...formData, nic: e.target.value})} />
@@ -309,14 +473,6 @@ const Onboarding = () => {
                         <div className="mt-4">
                             <p className="text-sm font-semibold text-gray-300 mb-2">Home Address</p>
                             <textarea className="w-full bg-background border border-gray-700 text-white p-3 rounded-xl focus:outline-none focus:border-primary resize-none h-24" placeholder="Your full residential address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} />
-                        </div>
-
-                        <div className="w-full mt-4">
-                            <p className="text-sm font-semibold text-gray-300 mb-2">Registering As</p>
-                            <select className="w-full bg-background border border-gray-700 text-white p-3 rounded-xl focus:outline-none focus:border-primary" value={formData.role} onChange={(e) => setFormData({...formData, role: e.target.value})}>
-                                <option>Voter</option>
-                                <option>Candidate</option>
-                            </select>
                         </div>
                     </div>
                 )}
@@ -386,6 +542,57 @@ const Onboarding = () => {
                         </button>
                     )}
                 </div>
+                    </>
+                ) : (
+                    <>
+                        {/* ADMIN FORM */}
+                        <div className="mb-8 border-b border-gray-800 pb-6 text-center">
+                            <h1 className="text-3xl font-bold text-white mb-2">Admin Initialization</h1>
+                            <p className="text-gray-400">Set up your Organizer Profile before creating an election.</p>
+                        </div>
+                        
+                        {!currentAccount ? (
+                            <div className="w-full text-center py-10 flex flex-col items-center">
+                                <div className="text-red-500 mb-6">
+                                    <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                </div>
+                                <h2 className="text-2xl font-bold mb-2 text-white">Wallet Not Connected</h2>
+                                <p className="text-gray-400 text-sm max-w-sm mb-4">
+                                    Please connect your MetaMask wallet first to register as an Election Admin.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="animate-fade-in space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input title="Full Name" placeholder="Jane Doe" inputType="text" value={adminData.name} handleClick={(e) => setAdminData({...adminData, name: e.target.value})} />
+                                    <Input title="Age" placeholder="35" inputType="number" value={adminData.age} handleClick={(e) => setAdminData({...adminData, age: e.target.value})} />
+                                    <Input title="Position" placeholder="Chief Electoral Officer" inputType="text" value={adminData.position} handleClick={(e) => setAdminData({...adminData, position: e.target.value})} />
+                                    <Input title="Email Address" placeholder="admin@election.org" inputType="email" value={adminData.email} handleClick={(e) => setAdminData({...adminData, email: e.target.value})} />
+                                </div>
+                                
+                                <div className="w-full mt-4 bg-gray-900 border border-primary/20 p-4 rounded-xl">
+                                    <p className="text-xs text-primary font-bold uppercase tracking-wider mb-2">Verified Contract Address</p>
+                                    <input 
+                                        type="text" 
+                                        disabled
+                                        className="w-full bg-black border border-gray-800 p-3 rounded-lg text-gray-400 font-mono text-sm opacity-80"
+                                        value={currentAccount || 'Not Connected'} 
+                                    />
+                                </div>
+
+                                <div className="pt-6 border-t border-gray-800 mt-8">
+                                    <button 
+                                        onClick={handleAdminSubmit}
+                                        disabled={loading}
+                                        className={`w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg flex items-center justify-center ${loading ? 'bg-primary/50 cursor-not-allowed' : 'bg-primary hover:bg-primary/80 hover:shadow-primary/50'}`}
+                                    >
+                                        {loading ? "Initializing..." : "Complete Setup & Proceed to Dashboard"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
 
             </div>
         </div>

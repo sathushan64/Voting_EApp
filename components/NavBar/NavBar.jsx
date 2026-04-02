@@ -37,17 +37,11 @@ const NavBar = () => {
                         <p className={router.pathname === '/voterList' ? activeLink : normalLink}>Voter List</p>
                     </Link>
 
-                    {/* ADMIN VIP ROUTES */}
+                    {/* VIP ROUTES */}
                     {currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase() && (
                         <>
-                            <Link href={{ pathname: '/candidate-registration' }}>
-                                <p className={router.pathname === '/candidate-registration' ? activeLink : normalLink}>Candidate Reg</p>
-                            </Link>
-                            <Link href={{ pathname: '/allowed-voters' }}>
-                                <p className={router.pathname === '/allowed-voters' ? activeLink : normalLink}>Voter Reg</p>
-                            </Link>
                             <Link href={{ pathname: '/history' }}>
-                                <p className={router.pathname === '/history' ? activeLink : normalLink}>User History</p>
+                                <p className={router.pathname === '/history' ? activeLink : normalLink}>Approval Dashboard</p>
                             </Link>
                             <Link href={{ pathname: '/admin' }}>
                                 <p className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>
@@ -97,17 +91,11 @@ const NavBar = () => {
                         <p onClick={() => setOpenNav(false)} className={router.pathname === '/voterList' ? activeLink : normalLink}>Voter List</p>
                     </Link>
 
-                    {/* ADMIN VIP ROUTES */}
+                    {/* VIP ROUTES */}
                     {currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase() && (
                         <>
-                            <Link href={{ pathname: '/candidate-registration' }}>
-                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/candidate-registration' ? activeLink : normalLink}>Candidate Registration</p>
-                            </Link>
-                            <Link href={{ pathname: '/allowed-voters' }}>
-                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/allowed-voters' ? activeLink : normalLink}>Voter Registration</p>
-                            </Link>
                             <Link href={{ pathname: '/history' }}>
-                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/history' ? activeLink : normalLink}>User History</p>
+                                <p onClick={() => setOpenNav(false)} className={router.pathname === '/history' ? activeLink : normalLink}>Approval Dashboard</p>
                             </Link>
                             <Link href={{ pathname: '/admin' }}>
                                 <p onClick={() => setOpenNav(false)} className={router.pathname === '/admin' ? activeLink : normalLink}>Admin Settings</p>

@@ -1,8 +1,8 @@
 [
   {
-    "address": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
-    "role": "Voter",
-    "cid": "https://gateway.pinata.cloud/ipfs/QmP4jP6Wr5ipBW5LmqZbgBNSZzkykKxpxuZLzat7jTMcfe",
-    "registeredAt": "2026-04-01T20:42:12.052Z"
+    "address": "0xa0ee7a142d267c1f36714e4a8f75612f20a79720",
+    "role": "Admin",
+    "cid": "https://gateway.pinata.cloud/ipfs/QmPRL1fd1WCuNmhspU75vNmaamPwE9sxEE2sAxc6Q5usbV",
+    "registeredAt": "2026-04-02T10:38:41.829Z"
   }
 ]

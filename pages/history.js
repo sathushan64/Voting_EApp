@@ -4,7 +4,7 @@ import axios from 'axios';
 import { VotingContext } from '../context/Voter';
 
 const History = () => {
-    const { currentAccount, votingOrganizer } = useContext(VotingContext);
+    const { currentAccount, votingOrganizer, createVoter, setCandidate } = useContext(VotingContext);
     const router = useRouter();
 
     const [activeTab, setActiveTab] = useState("Voters");
@@ -55,10 +55,57 @@ const History = () => {
             }
         };
 
-        if (currentAccount && currentAccount.toLowerCase() === votingOrganizer.toLowerCase()) {
+        if (currentAccount) {
             fetchDecentralizedUsers();
         }
-    }, [currentAccount, votingOrganizer]);
+    }, [currentAccount]);
+
+    const handleApprove = async (user) => {
+        try {
+            setLoading(true);
+            const { profile } = user;
+            if (!profile || !profile.personalDetails) throw new Error("Incomplete profile data.");
+
+            const fileUrl = profile.verification?.selfie || "";
+            
+            if (user.role === "Voter") {
+                const formInput = {
+                    name: profile.personalDetails.name,
+                    address: user.address,
+                    position: "Voter"
+                };
+                await createVoter(formInput, fileUrl);
+            } else if (user.role === "Candidate") {
+                const candidateForm = {
+                    name: profile.personalDetails.name,
+                    address: user.address,
+                    age: "30" 
+                };
+                await setCandidate(candidateForm, fileUrl, router);
+            }
+            
+            // Remove from pending queue
+            await handleReject(user.address, true);
+        } catch(err) {
+            console.error("Error approving user", err);
+            setErrorMsg("Failed to approve user: " + err.message);
+            setLoading(false);
+        }
+    };
+
+    const handleReject = async (address, silent = false) => {
+        try {
+            if (!silent) setLoading(true);
+            await axios.delete(`/api/user?address=${address}`);
+            setUsers(prev => prev.filter(u => u.address.toLowerCase() !== address.toLowerCase()));
+            if (!silent) setErrorMsg("");
+        } catch(err) {
+            console.error("Error rejecting user", err);
+            if (!silent) setErrorMsg("Failed to remove user");
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    };
 
     // Derived States
     const parsedVoters = users.filter(u => u.role === "Voter");
@@ -101,19 +148,21 @@ const History = () => {
                 </div>
 
                 {/* Details Column */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col min-w-0">
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <h2 className="text-2xl font-bold text-white capitalize">{profile.personalDetails?.name}</h2>
-                            <p className="text-primary text-sm font-semibold">{user.role} • {profile.personalDetails?.gender}</p>
+                            <p className="text-primary text-sm font-semibold">{user.role} • Age: {profile.personalDetails?.age || profile.personalDetails?.dob || "N/A"}</p>
                         </div>
-                        <span className="bg-gray-800 px-3 py-1 rounded-full text-xs font-mono text-gray-400">
-                            {user.address.slice(0, 6)}...{user.address.slice(-4)}
-                        </span>
+                        {user.electionPin && (
+                            <span className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-mono font-bold">
+                                Election PIN: {user.electionPin}
+                            </span>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-2 text-sm text-gray-300 mt-2">
-                        <p><span className="font-semibold text-gray-500">DOB:</span> {profile.personalDetails?.dob}</p>
+                        <p><span className="font-semibold text-gray-500">Wallet:</span> <span className="font-mono text-xs">{user.address}</span></p>
                         <p><span className="font-semibold text-gray-500">NIC:</span> {profile.personalDetails?.nic}</p>
                         <p><span className="font-semibold text-gray-500">Phone:</span> {profile.personalDetails?.phone}</p>
                         <p className="break-all"><span className="font-semibold text-gray-500">Email:</span> {profile.personalDetails?.email}</p>
@@ -126,6 +175,24 @@ const History = () => {
                         </p>
                     </div>
                 </div>
+
+                {/* Actions Column - ADMIN ONLY */}
+                {currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase() && (
+                    <div className="flex flex-row md:flex-col items-center justify-center gap-3 shrink-0 px-2 mt-4 md:mt-0 border-t md:border-t-0 md:border-l border-gray-800 pt-4 md:pt-0 md:pl-4">
+                        <button 
+                            onClick={() => handleApprove(user)}
+                            className="flex-1 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-xl shadow transition-colors text-sm whitespace-nowrap"
+                        >
+                            Add
+                        </button>
+                        <button 
+                            onClick={() => handleReject(user.address)}
+                            className="flex-1 w-full bg-red-600/20 hover:bg-red-600/40 text-red-500 font-bold py-2 px-6 rounded-xl border border-red-500/20 transition-colors text-sm whitespace-nowrap"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                )}
             </div>
         );
     };

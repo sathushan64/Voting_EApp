@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 
 // INTERNAL IMPORT
 import { VotingContext } from '../context/Voter';
@@ -19,11 +20,14 @@ const index = () => {
         currentAccount
     } = useContext(VotingContext);
 
+    const router = useRouter();
+
     useEffect(() => {
         getAllVoterData();
         getNewCandidate();
         checkIfWalletIsConnected();
     }, []);
+
 
     return (
         <div className="min-h-screen bg-background p-8 font-sans">
@@ -37,7 +41,9 @@ const index = () => {
                     Welcome to the future of governance. Experience secure, transparent, and tamper-proof voting with next-generation digital technology. Cast your vote with confidence and make your voice count.
                 </p>
 
-                <div className="mt-8 flex gap-4 text-sm font-mono text-gray-500">
+
+
+                <div className="mt-16 flex gap-4 text-sm font-mono text-gray-500">
                     <div className="px-4 py-2 bg-paper rounded border border-gray-800">
                         Candidates: <span className="text-white font-bold">{candidateLength}</span>
                     </div>
