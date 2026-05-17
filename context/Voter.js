@@ -29,17 +29,53 @@ export const VotingProvider = ({ children }) => {
     const [voterLength, setVoterLength] = useState('');
     const [voterAddress, setVoterAddress] = useState([]);
 
+    useEffect(() => {
+        const handleAccountsChanged = () => {
+            // Reload the page to ensure all state and RouteGuards are cleanly reset for the new account
+            window.location.reload();
+        };
+
+        const handleChainChanged = () => {
+            window.location.reload();
+        };
+
+        if (typeof window !== "undefined" && window.ethereum) {
+            window.ethereum.on('accountsChanged', handleAccountsChanged);
+            window.ethereum.on('chainChanged', handleChainChanged);
+
+            return () => {
+                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                window.ethereum.removeListener('chainChanged', handleChainChanged);
+            };
+        }
+    }, []);
+
     const checkOnboardStatus = async (account) => {
         try {
+            // Check the actual smart contract first
+            const web3Modal = new Web3Modal();
+            const connection = await web3Modal.connect();
+            const provider = new ethers.providers.Web3Provider(connection);
+            const contract = fetchContract(provider);
+            
+            const voterData = await contract.voters(account);
+            const candidateData = await contract.candidates(account);
+            
+            if (voterData._address !== ethers.constants.AddressZero || candidateData._address !== ethers.constants.AddressZero) {
+                setIsOnboarded('approved');
+                return;
+            }
+
+            // If not in smart contract, check pending registration list (off-chain API)
             const res = await axios.get(`/api/user?address=${account}`);
             if (res.data.onboarded) {
-                setIsOnboarded(true);
+                setIsOnboarded('pending');
             } else {
-                setIsOnboarded(false);
+                setIsOnboarded('unregistered');
             }
         } catch (error) {
             console.log("Error checking onboard status", error);
-            setIsOnboarded(false);
+            setIsOnboarded('unregistered');
         }
     };
 
@@ -135,6 +171,19 @@ export const VotingProvider = ({ children }) => {
             } else {
                 setError('Error connecting wallet. Please try again.');
             }
+        }
+    };
+
+    const switchAccount = async () => {
+        try {
+            if (window.ethereum) {
+                await window.ethereum.request({
+                    method: "wallet_requestPermissions",
+                    params: [{ eth_accounts: {} }]
+                });
+            }
+        } catch (error) {
+            console.log("Error switching account:", error);
         }
     };
 

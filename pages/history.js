@@ -152,47 +152,71 @@ const History = () => {
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <h2 className="text-2xl font-bold text-white capitalize">{profile.personalDetails?.name}</h2>
-                            <p className="text-primary text-sm font-semibold">{user.role} • Age: {profile.personalDetails?.age || profile.personalDetails?.dob || "N/A"}</p>
+                            <p className="text-primary text-sm font-semibold whitespace-nowrap">{user.role} • Date of Birth: {profile.personalDetails?.age || profile.personalDetails?.dob || "N/A"}</p>
                         </div>
+                    </div>
+
+                    <div className="flex flex-col gap-y-3 text-sm text-gray-300 mt-4 bg-gray-800/30 p-4 rounded-xl border border-gray-800">
                         {user.electionPin && (
-                            <span className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-mono font-bold">
-                                Election PIN: {user.electionPin}
-                            </span>
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-gray-500 text-xs uppercase tracking-wider mb-1">Election PIN</span>
+                                <span className="font-mono text-primary font-bold">{user.electionPin}</span>
+                            </div>
+                        )}
+                        <div className="flex flex-col">
+                            <span className="font-semibold text-gray-500 text-xs uppercase tracking-wider mb-1">Wallet Address</span>
+                            <span className="font-mono text-xs text-primary bg-primary/10 py-1 px-2 rounded w-fit break-all">{user.address}</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-gray-500 text-xs uppercase tracking-wider mb-1">NIC</span>
+                                <span>{profile.personalDetails?.nic || "N/A"}</span>
+                            </div>
+                            {profile.personalDetails?.phone && (
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-gray-500 text-xs uppercase tracking-wider mb-1">Phone</span>
+                                    <span>{profile.personalDetails?.phone}</span>
+                                </div>
+                            )}
+                            {profile.personalDetails?.email && (
+                                <div className="flex flex-col sm:col-span-2">
+                                    <span className="font-semibold text-gray-500 text-xs uppercase tracking-wider mb-1">Email</span>
+                                    <span className="break-all">{profile.personalDetails?.email}</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex flex-col mt-2 pt-2 border-t border-gray-800/50">
+                            <span className="font-semibold text-gray-500 text-xs uppercase tracking-wider mb-1">Address</span>
+                            <span className="break-words">{profile.personalDetails?.address || "N/A"}</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+                        <div className="hidden md:block overflow-hidden flex-1 w-full">
+                            <p className="text-xs font-mono text-gray-500 truncate" title={user.cid}>
+                                IPFS: {user.cid}
+                            </p>
+                        </div>
+                        
+                        {/* Actions Column - ADMIN ONLY */}
+                        {currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase() && (
+                            <div className="flex items-center gap-3 shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                                <button 
+                                    onClick={() => handleApprove(user)}
+                                    className="flex-1 md:flex-none bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition-colors text-sm"
+                                >
+                                    Add
+                                </button>
+                                <button 
+                                    onClick={() => handleReject(user.address)}
+                                    className="flex-1 md:flex-none bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition-colors text-sm"
+                                >
+                                    Remove
+                                </button>
+                            </div>
                         )}
                     </div>
-
-                    <div className="flex flex-col gap-2 text-sm text-gray-300 mt-2">
-                        <p><span className="font-semibold text-gray-500">Wallet:</span> <span className="font-mono text-xs">{user.address}</span></p>
-                        <p><span className="font-semibold text-gray-500">NIC:</span> {profile.personalDetails?.nic}</p>
-                        <p><span className="font-semibold text-gray-500">Phone:</span> {profile.personalDetails?.phone}</p>
-                        <p className="break-all"><span className="font-semibold text-gray-500">Email:</span> {profile.personalDetails?.email}</p>
-                        <p className="break-words mt-1"><span className="font-semibold text-gray-500">Address:</span> {profile.personalDetails?.address}</p>
-                    </div>
-
-                    <div className="mt-auto pt-4 border-t border-gray-800 hidden md:block">
-                        <p className="text-xs font-mono text-gray-500 truncate w-full" title={user.cid}>
-                            IPFS: {user.cid}
-                        </p>
-                    </div>
                 </div>
-
-                {/* Actions Column - ADMIN ONLY */}
-                {currentAccount && votingOrganizer && currentAccount.toLowerCase() === votingOrganizer.toLowerCase() && (
-                    <div className="flex flex-row md:flex-col items-center justify-center gap-3 shrink-0 px-2 mt-4 md:mt-0 border-t md:border-t-0 md:border-l border-gray-800 pt-4 md:pt-0 md:pl-4">
-                        <button 
-                            onClick={() => handleApprove(user)}
-                            className="flex-1 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-xl shadow transition-colors text-sm whitespace-nowrap"
-                        >
-                            Add
-                        </button>
-                        <button 
-                            onClick={() => handleReject(user.address)}
-                            className="flex-1 w-full bg-red-600/20 hover:bg-red-600/40 text-red-500 font-bold py-2 px-6 rounded-xl border border-red-500/20 transition-colors text-sm whitespace-nowrap"
-                        >
-                            Remove
-                        </button>
-                    </div>
-                )}
             </div>
         );
     };

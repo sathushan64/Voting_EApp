@@ -2,7 +2,7 @@
 import React from "react";
 import Image from "next/image";
 
-const Card = ({ image, name, id, address, voteCount, giveVote, hideVoteButton, votedStatus }) => {
+const Card = ({ image, name, id, address, voteCount, giveVote, hideVoteButton, votedStatus, votingStatus = "active" }) => {
     return (
         <div className="bg-paper p-6 rounded-3xl border border-gray-800 hover:border-primary/50 transition-all duration-300 group hover:shadow-2xl hover:shadow-primary/10 relative overflow-hidden max-w-sm w-full mx-auto">
             <div className="relative w-full h-48 rounded-xl overflow-hidden mb-4 bg-gray-900">
@@ -39,10 +39,19 @@ const Card = ({ image, name, id, address, voteCount, giveVote, hideVoteButton, v
 
                 {!hideVoteButton && (
                     <button
-                        onClick={() => giveVote({ id, address })}
-                        className="bg-primary hover:bg-secondary text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:shadow-primary/50 transition-all"
+                        onClick={() => {
+                            if (votingStatus === "active") {
+                                giveVote({ id, address });
+                            }
+                        }}
+                        disabled={votingStatus !== "active"}
+                        className={`${
+                            votingStatus === "active" 
+                                ? "bg-primary hover:bg-secondary hover:shadow-primary/50" 
+                                : "bg-gray-600 opacity-50 cursor-not-allowed"
+                        } text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-all`}
                     >
-                        Vote
+                        {votingStatus === "active" ? "Vote" : (votingStatus === "not_started" ? "Not Started" : "Ended")}
                     </button>
                 )}
             </div>

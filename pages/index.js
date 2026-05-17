@@ -21,11 +21,36 @@ const index = () => {
     } = useContext(VotingContext);
 
     const router = useRouter();
+    const [votingStatus, setVotingStatus] = useState("active");
 
     useEffect(() => {
         getAllVoterData();
         getNewCandidate();
         checkIfWalletIsConnected();
+        
+        const fetchElectionData = async () => {
+            try {
+                const res = await fetch("/api/election");
+                const data = await res.json();
+                
+                if (data && data.date && data.startTime && data.endTime) {
+                    const startDateTime = new Date(`${data.date}T${data.startTime}`);
+                    const endDateTime = new Date(`${data.date}T${data.endTime}`);
+                    const now = new Date();
+                    
+                    if (now < startDateTime) {
+                        setVotingStatus("not_started");
+                    } else if (now > endDateTime) {
+                        setVotingStatus("ended");
+                    } else {
+                        setVotingStatus("active");
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching election data:", err);
+            }
+        };
+        fetchElectionData();
     }, []);
 
 
@@ -54,11 +79,11 @@ const index = () => {
             </div>
 
             {/* WINNER SECTION */}
-            {candidateArray.length > 0 && candidateArray.some(el => Number(el.voteCount) > 0) && (
+            {votingStatus === "ended" && candidateArray.length > 0 && candidateArray.some(el => Number(el.voteCount) > 0) && (
                 <div className="max-w-7xl mx-auto mb-16">
                     <div className="flex items-center justify-between mb-8">
                         <h2 className="text-3xl font-bold text-white">
-                            Current Leading Candidate
+                            Final Election Winner
                         </h2>
                         <div className="h-1 flex-1 bg-gray-800 ml-6 rounded-full"></div>
                     </div>
@@ -71,7 +96,7 @@ const index = () => {
                                     <div className="relative bg-gradient-to-br from-indigo-900 to-purple-900 rounded-2xl p-6 border border-white/10 shadow-xl">
                                         <div className="absolute top-0 right-0 p-4">
                                             <span className="bg-white text-black font-bold px-3 py-1 rounded-full text-sm shadow-lg">
-                                                🏆 LEADER
+                                                🏆 WINNER
                                             </span>
                                         </div>
 
@@ -120,6 +145,7 @@ const index = () => {
                                 address={el.address}
                                 voteCount={el.voteCount}
                                 giveVote={giveVote}
+                                votingStatus={votingStatus}
                             />
                         ))}
                     </div>

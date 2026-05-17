@@ -14,18 +14,23 @@ const RouteGuard = ({ children }) => {
         
         const isOrganizer = currentAccount.toLowerCase() === votingOrganizer.toLowerCase();
         
-        // 1. If not organizer, completely not onboarded, and trying to browse the app
-        if (!isOrganizer && isOnboarded === false && router.pathname !== '/onboarding') {
+        // 1. If not organizer and not registered at all, must go to onboarding
+        if (!isOrganizer && isOnboarded === 'unregistered' && router.pathname !== '/onboarding') {
             router.push('/onboarding');
         }
+
+        // 2. If not organizer and is pending approval, must go to pending page
+        if (!isOrganizer && isOnboarded === 'pending' && router.pathname !== '/pending') {
+            router.push('/pending');
+        }
         
-        // 2. If organizer tries to access the onboarding page (they don't need to)
-        if (isOrganizer && router.pathname === '/onboarding') {
+        // 3. If organizer tries to access onboarding/pending
+        if (isOrganizer && (router.pathname === '/onboarding' || router.pathname === '/pending')) {
             router.push('/');
         }
 
-        // 3. If regular user is already onboarded but manually navigated to /onboarding
-        if (!isOrganizer && isOnboarded === true && router.pathname === '/onboarding') {
+        // 4. If regular user is already approved but manually navigated to /onboarding or /pending
+        if (!isOrganizer && isOnboarded === 'approved' && (router.pathname === '/onboarding' || router.pathname === '/pending')) {
             router.push('/');
         }
     }, [currentAccount, votingOrganizer, isOnboarded, router.pathname]);
