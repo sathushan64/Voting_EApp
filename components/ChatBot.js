@@ -27,7 +27,19 @@ const ChatBot = () => {
         const lowerInput = inputText.toLowerCase();
         let botResponse = "I'm not sure about that. Try asking 'How to vote' or 'How to register'.";
 
-        if (lowerInput.includes('vote') || lowerInput.includes('voting')) {
+        if (lowerInput.includes('pending') || lowerInput.includes('take time')) {
+            botResponse = "When your registration is 'Pending', it means your details have been submitted and are waiting for the Election Admin to manually verify them. Yes, it can take some time because the Admin must review your profile and authorize your account on the blockchain before you can vote.";
+        } else if (lowerInput.includes('what time') || lowerInput.includes('release') || lowerInput.includes('when')) {
+            botResponse = "The election results are released immediately at the exact 'End Time' of the election. This exact time is configured by the Admin when the election is created. Once the end time is reached, the 'Home' page will automatically display the Final Election Winner.";
+        } else if (lowerInput.includes('result') || lowerInput.includes('winner') || lowerInput.includes('leader') || lowerInput.includes('end time')) {
+            botResponse = "The final election results and the winning candidate will only be displayed on the Home page once the election has officially ended. During the active election, the results are hidden.";
+        } else if (lowerInput.includes('wait') || lowerInput.includes('approval')) {
+            botResponse = "After submitting your registration profile, your account is in a 'Pending' state. The Election Admin must review and authorize your account on the blockchain before you are permitted to vote.";
+        } else if (lowerInput.includes('data') || lowerInput.includes('store') || lowerInput.includes('ipfs')) {
+            botResponse = "Your user profile is securely stored on IPFS (InterPlanetary File System), a decentralized storage network, while your authorization status is strictly managed on the blockchain.";
+        } else if (lowerInput.includes('log out') || lowerInput.includes('logout') || lowerInput.includes('disconnect')) {
+            botResponse = "To log out, you must disconnect your account directly from your MetaMask wallet extension. This application securely reads your active account directly from MetaMask.";
+        } else if (lowerInput.includes('vote') || lowerInput.includes('voting')) {
             botResponse = "To vote: \n1. Go to the Home page. \n2. Connect your wallet. \n3. Click 'Vote' on a candidate card. \n4. Confirm the transaction in MetaMask.";
         } else if (lowerInput.includes('register') || lowerInput.includes('candidate')) {
             botResponse = "To register as a candidate: \n1. Go to 'Candidate Registration'. \n2. Fill in your name, age, and upload a photo. \n3. Submitting requires a small interaction fee.";
